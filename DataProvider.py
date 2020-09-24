@@ -1,5 +1,8 @@
 import csv
 from os import path
+import datetime, pytz
+
+
 
 
 class DataProvider:
@@ -47,16 +50,8 @@ class DataProvider:
         return self.geonames.get(id)
 
     def get_page(self, page_size: int, page: int):
-        return self.geonames_sorted[(page_size * page):(page_size * page + page_size):1]
-
-    """
-            у нас есть длина страницы и номер страницы, нужно вывести нужную страницу, для значений
-            page_size=100, page=3 нужно вывести элементы из self.geonames_sorted с индексами от 300, до 400
-            :param page_size: количество элементов на странице
-            :param page: номер страницы
-            :return:
-          """
-
+        cursor = page_size*page
+        return self.geonames_sorted[cursor:(cursor + page_size)]
 
 
 
@@ -70,24 +65,33 @@ class DataProvider:
         if len(suitable_cities) == 0:
             raise Exception('City not found')
 
-        popsorted_city = [(sorted(suitable_cities, key=lambda x: x['population'])[-1])]
+        popsorted_city = (sorted(suitable_cities, key=lambda x: x['population'])[-1])
         # TODO: select with higher pops
         return popsorted_city
 
 
     def compare_cities(self, city_1, city_2):
 
-        city_1 = self.find_city_by_name(city_1)
-        city_2 = self.find_city_by_name(city_2)
-        c1=city_1[0]
-        c2=city_2[0]
+        c1= self.find_city_by_name(city_1)
+        c2 = self.find_city_by_name(city_2)
+
+
         if c1['latitude'] > c2['latitude'] and c1['timezone'] == c2['timezone']:
-            return c1 + "Севернее и временная зона одинаковая"
+            return c1, c2
         elif c1['latitude'] > c2['latitude'] and c1['timezone'] != c2['timezone']:
-            return c1 + "Севернее и временная зона разная"
+            return c1, c2
         elif c1['latitude'] < c2['latitude'] and c1['timezone'] == c2['timezone']:
-            return c2 + "Севернее и временная зона одинаковая"
+            return c2, c1
         elif c1['latitude'] < c2['latitude'] and c1['timezone'] != c2['timezone']:
-            return c2 + "Севернее и временная зона разная"
+            return c2, c1
         else:
             return "compare error"
+
+
+    def supplement_str(self, symbols: str):
+        symbols = input()
+        for supstr in self.geonames_sorted:
+            supstr1 = supstr['alternatenames'].replace(',', '')
+            if symbols in supstr1:
+                return supstr['alternatenames']
+

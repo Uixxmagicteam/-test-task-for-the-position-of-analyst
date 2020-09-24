@@ -6,6 +6,16 @@ from DataProvider import DataProvider
 
 data_provider = DataProvider()
 
+''''Функции преобразования аргументов получаемых из URL адреса'''
+
+def query_args_to_int(arg):
+    a = int(arg[0])
+    return a
+
+def query_args_to_str(sarg):
+    b = str(sarg[0])
+    return b
+
 
 def router(path: str) -> str:
     parsed = parse.urlparse(path)
@@ -16,12 +26,12 @@ def router(path: str) -> str:
         return 'Unknown resource'
 
     if splited[2] == 'collection':
-        return json.dumps(data_provider.get_page(query_args.get('page_size'), query_args.get('page')))
+        return json.dumps(data_provider.get_page(query_args_to_int(query_args.get('page_size')), query_args_to_int(query_args.get('page'))))
 
     if splited[2] == 'compare':
-        return json.dumps(data_provider.compare_cities('Скрипково', 'Киров'))
+        return json.dumps(data_provider.compare_cities(query_args_to_str(query_args.get('city_1')), query_args_to_str(query_args.get('city_2'))))
 
-    if splited[2]: # значит id, пример http://localhost:8080/geonames/451765
+    if splited[2]:
         return json.dumps(data_provider.get_by_id(splited[2]))
 
     return 'Unknown request'
@@ -39,8 +49,8 @@ class S(BaseHTTPRequestHandler):
         self.wfile.write(router(self.path).encode('utf-8'))
 
     def do_POST(self):
-        content_length = int(self.headers['Content-Length'])  # <--- Gets the size of data
-        post_data = self.rfile.read(content_length)  # <--- Gets the data itself
+        content_length = int(self.headers['Content-Length'])
+        post_data = self.rfile.read(content_length)
         logging.info("POST request,\nPath: %s\nHeaders:\n%s\n\nBody:\n%s\n",
                      str(self.path), str(self.headers), post_data.decode('utf-8'))
 
