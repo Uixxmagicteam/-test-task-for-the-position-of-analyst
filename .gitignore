@@ -1,6 +1,8 @@
 # Default ignored files
 .idea
 __pycache__
+*.py[cod]
+*$py.class
 /shelf/
 /workspace.xml
 # Datasource local storage ignored files
